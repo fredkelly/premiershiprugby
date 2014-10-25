@@ -18,6 +18,7 @@ end
 
 module PremiershipRugby
   BASE_URI = "http://www.premiershiprugby.tv/"
+  SITE_ID = 13118
 
   class Client
     include ::HTTParty
@@ -33,7 +34,6 @@ module PremiershipRugby
     def self.replay_video_files(format = nil)
       self.replays.map { |r| r.video_files(format) }
     end
-
   end
 
   class Replay
@@ -90,13 +90,11 @@ module PremiershipRugby
       params = URI.encode_www_form(
         'videoType' => 5,
         'type' => 18,
-        'sites' => 13118,
+        'sites' => SITE_ID,
         'clipId' => self.id
       )
-      "/page/sva/xmlHttpRequest/0,,13118,00.xml?#{params}"
+      "/page/sva/xmlHttpRequest/0,,#{SITE_ID},00.xml?#{params}"
     end
-
   end
-
 end
 
