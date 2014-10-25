@@ -4,7 +4,7 @@ require 'bundler'
 Bundler.require
 
 
-class HtmlParserIncluded < HTTParty::Parser
+class XmlParserIncluded < HTTParty::Parser
   SupportedFormats.merge!('text/html' => :html, 'text/xml' => :xml)
 
   def html
@@ -22,7 +22,7 @@ module PremiershipRugby
 
   class Client
     include ::HTTParty
-    parser ::HtmlParserIncluded
+    parser ::XmlParserIncluded
 
     base_uri BASE_URI
 
@@ -38,7 +38,7 @@ module PremiershipRugby
 
   class Replay
     include ::HTTParty
-    parser ::HtmlParserIncluded
+    parser ::XmlParserIncluded
 
     base_uri BASE_URI
 
