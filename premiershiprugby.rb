@@ -31,8 +31,8 @@ module PremiershipRugby
     end
 
 
-    def self.replay_video_files(format = nil)
-      self.replays.map { |r| r.video_files(format) }
+    def self.replay_video_files(quality = nil)
+      self.replays.map { |r| r.video_files(quality) }
     end
   end
 
