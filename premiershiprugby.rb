@@ -26,14 +26,18 @@ module PremiershipRugby
 
     base_uri BASE_URI
 
-    def self.replays
-      self.get('/').css('.videoItem').map { |r| Replay.new(r) }
+    def self.replays(limit = -1)
+      self.get('/').css('.videoItem')[0..limit].map { |r| Replay.new(r) }
     end
 
 
-    def self.replay_video_files(quality = nil, formats = nil)
-      self.replays.reduce([]) do |all, r|
-        all + r.video_files(quality, formats).map { |f| [r.title, f] }
+    def self.replay_video_files(options = {})
+      options[:limit] ||= 25
+      options[:formats] ||= %w(.flv .m4a)
+      options[:quality] ||= :high
+
+      self.replays(options[:limit]).reduce([]) do |all, r|
+        all + r.video_files(options[:quality], options[:formats]).map { |f| [r.title, f] }
       end
     end
   end
@@ -108,9 +112,10 @@ end
 class PremiershipRugbyCLI < Thor
   option :quality, :type => :string, :enum => ['high', 'low', 'iphone'], :desc => 'file quality'
   option :formats, :type => :array, :enum => ['.flv', '.m4a'], :desc => 'file formats'
-  desc 'all', 'lists all replay files'
+  option :limit, :type => :numeric, :desc => 'number of results returned'
+  desc 'replays', 'lists all replay files'
   def all
-    files = PremiershipRugby::Client.replay_video_files(options[:quality], options[:formats])
+    files = PremiershipRugby::Client.replay_video_files(options.dup)
     puts files.join("\n")
   end
 end
