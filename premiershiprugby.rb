@@ -110,13 +110,51 @@ module PremiershipRugby
 end
 
 class PremiershipRugbyCLI < Thor
+  option :preview, :type => :boolean, :default => true, :desc => 'preview without downloading'
+  option :target, :type => :string, :required => true, :desc => 'destination directory'
   option :quality, :type => :string, :enum => ['high', 'low', 'iphone'], :desc => 'file quality'
   option :formats, :type => :array, :enum => ['.flv', '.m4a'], :desc => 'file formats'
   option :limit, :type => :numeric, :desc => 'number of results returned'
-  desc 'replays', 'lists all replay files'
-  def all
+
+  desc 'download', 'lists all replay files'
+
+  def download
     files = PremiershipRugby::Client.replay_video_files(options.dup)
-    puts files.join("\n")
+    commands = []
+    
+    commands = files.inject([]) do |commands, (title, file)|
+      target = File.join options[:target], sanitize_filename(title) + File.extname(file)
+      commands + ["rtmpdump -V -r #{file} -o #{target}"]
+    end
+
+    if options[:preview]
+      puts commands.join("\n")
+    else
+      commands.each_slice(5) do |batch|
+        batch.map do |command|
+          Thread.new { puts(command); system(command) }
+        end.map(&:join)
+      end
+    end
+  end
+
+  private
+
+  # http://stackoverflow.com/a/10823131
+  def sanitize_filename(filename)
+    # Split the name when finding a period which is preceded by some
+    # character, and is followed by some character other than a period,
+    # if there is no following period that is followed by something
+    # other than a period (yeah, confusing, I know)
+    fn = filename.split /(?<=.)\.(?=[^.])(?!.*\.[^.])/m
+
+    # We now have one or two parts (depending on whether we could find
+    # a suitable period). For each of these parts, replace any unwanted
+    # sequence of characters with an underscore
+    fn.map! { |s| s.gsub /[^a-z0-9\-]+/i, '_' }
+
+    # Finally, join the parts with a period and return the result
+    return fn.join '.'
   end
 end
 
