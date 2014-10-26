@@ -130,11 +130,7 @@ class PremiershipRugbyCLI < Thor
     if options[:preview]
       puts commands.join("\n")
     else
-      commands.each_slice(5) do |batch|
-        batch.map do |command|
-          Thread.new { puts(command); system(command) }
-        end.map(&:join)
-      end
+      commands.each { |c| system(c) }
     end
   end
 
