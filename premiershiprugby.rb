@@ -26,8 +26,8 @@ module PremiershipRugby
 
     base_uri BASE_URI
 
-    def self.replays(limit = -1)
-      self.get('/').css('.videoItem')[0..limit].map { |r| Replay.new(r) }
+    def self.replays(limit = 0)
+      self.get('/').css('.videoItem')[0..limit-1].map { |r| Replay.new(r) }
     end
 
 
