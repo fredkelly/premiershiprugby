@@ -115,6 +115,7 @@ class PremiershipRugbyCLI < Thor
   option :quality, :type => :string, :enum => ['high', 'low', 'iphone'], :desc => 'file quality'
   option :formats, :type => :array, :enum => ['.flv', '.m4a'], :desc => 'file formats'
   option :limit, :type => :numeric, :desc => 'number of results returned'
+  option :skip, :type => :numeric, :desc => '(rtmpdump) skip N keyframes when resuming', :default => 0
 
   desc 'download', 'lists all replay files'
 
@@ -124,7 +125,7 @@ class PremiershipRugbyCLI < Thor
     
     commands = files.inject([]) do |commands, (title, file)|
       target = File.join options[:target], sanitize_filename(title) + File.extname(file)
-      commands + ["[ ! -f #{target} ] && rtmpdump -r #{file} -o #{target}"]
+      commands + ["[ ! -f #{target} ] && rtmpdump --skip #{options[:skip]} -r #{file} -o #{target}"]
     end
 
     if options[:preview]
