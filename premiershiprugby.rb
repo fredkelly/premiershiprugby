@@ -31,8 +31,10 @@ module PremiershipRugby
     end
 
 
-    def self.replay_video_files(quality = nil)
-      self.replays.map { |r| r.video_files(quality) }
+    def self.replay_video_files(quality = nil, formats = nil)
+      self.replays.reduce([]) do |all, r|
+        all + r.video_files(quality, formats).map { |f| [r.title, f] }
+      end
     end
   end
 
@@ -64,20 +66,25 @@ module PremiershipRugby
       end
     end
 
-    def video_files(quality = nil, formats = %w(.flv .m4v))
-      @video_files ||= manifest.xpath('//videofiles//file').map { |f| f.attr('externalPath') }
+    def video_files(quality = nil, formats = nil)
+      quality = quality.to_sym
+      formats ||= %w(.flv .m4v)
+
+      @video_files ||= manifest.xpath('//videofiles//file').map { |f| f.attr('externalPath').strip }
       video_files = @video_files.select { |f| formats.include?(File.extname(f)) }
 
       case quality
       when :iphone
-        video_files.select { |f| f[/\/iphone\//] }
+        video_files.select! { |f| f[/\/iphone\//] }
       when :high
-        video_files.select { |f| f[/\/hi\//] }
+        video_files.select! { |f| f[/\/hi\//] }
       when :low
-        video_files.select { |f| f[/\/lo\//] }
+        video_files.select! { |f| f[/\/lo\//] }
       else
-        video_files
+        # no filtering
       end
+
+      video_files.compact
     end
 
     private
@@ -98,3 +105,14 @@ module PremiershipRugby
   end
 end
 
+class PremiershipRugbyCLI < Thor
+  option :quality, :type => :string, :enum => ['high', 'low', 'iphone'], :desc => 'file quality'
+  option :formats, :type => :array, :enum => ['.flv', '.m4a'], :desc => 'file formats'
+  desc 'all', 'lists all replay files'
+  def all
+    files = PremiershipRugby::Client.replay_video_files(options[:quality], options[:formats])
+    puts files.join("\n")
+  end
+end
+
+PremiershipRugbyCLI.start(ARGV)
