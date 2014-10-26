@@ -59,7 +59,6 @@ module PremiershipRugby
     end
 
     def type
-      title =~ /(\w+):.*/
       case title
       when /(Match)/
         :match
