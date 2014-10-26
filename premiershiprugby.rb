@@ -34,7 +34,7 @@ module PremiershipRugby
     def self.replay_video_files(options = {})
       options[:limit] ||= 25
       options[:formats] ||= %w(.flv .m4a)
-      options[:quality] ||= :high
+      options[:quality] ||= nil #:high
 
       self.replays(options[:limit]).reduce([]) do |all, r|
         all + r.video_files(options[:quality], options[:formats]).map { |f| [r.title, f] }
