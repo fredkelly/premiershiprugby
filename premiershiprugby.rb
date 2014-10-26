@@ -34,7 +34,7 @@ module PremiershipRugby
     def self.replay_video_files(options = {})
       options[:limit] ||= 25
       options[:formats] ||= %w(.flv .m4a)
-      options[:quality] ||= nil #:high
+      options[:quality] ||= nil
 
       self.replays(options[:limit]).reduce([]) do |all, r|
         all + r.video_files(options[:quality], options[:formats]).map { |f| [r.title, f] }
@@ -61,9 +61,9 @@ module PremiershipRugby
     def type
       title =~ /(\w+):.*/
       case title
-      when /^(Match)/
+      when /(Match)/
         :match
-      when /^(Highlights)/
+      when /(Highlights)/
         :highlights
       else
         :unknown
@@ -73,6 +73,10 @@ module PremiershipRugby
     def video_files(quality = nil, formats = nil)
       quality = quality.to_sym if quality
       formats ||= %w(.flv .m4v)
+
+      # hack, full match replays don't have a /hi/ in URI
+      quality = nil if type == :match
+
 
       @video_files ||= manifest.xpath('//videofiles//file').map { |f| f.attr('externalPath').strip }
       video_files = @video_files.select { |f| formats.include?(File.extname(f)) }
