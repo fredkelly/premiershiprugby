@@ -124,7 +124,7 @@ class PremiershipRugbyCLI < Thor
     
     commands = files.inject([]) do |commands, (title, file)|
       target = File.join options[:target], sanitize_filename(title) + File.extname(file)
-      commands + ["rtmpdump -V -r #{file} -o #{target}"]
+      commands + ["[ ! -f #{target} ] && rtmpdump -r #{file} -o #{target}"]
     end
 
     if options[:preview]
