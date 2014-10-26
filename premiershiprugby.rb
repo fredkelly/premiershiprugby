@@ -71,7 +71,7 @@ module PremiershipRugby
     end
 
     def video_files(quality = nil, formats = nil)
-      quality = quality.to_sym
+      quality = quality.to_sym if quality
       formats ||= %w(.flv .m4v)
 
       @video_files ||= manifest.xpath('//videofiles//file').map { |f| f.attr('externalPath').strip }
