@@ -127,8 +127,8 @@ class PremiershipRugbyCLI < Thor
     commands = []
     
     commands = files.inject([]) do |commands, (title, file)|
-      target = File.join options[:target], sanitize_filename(title) + File.extname(file)
-      commands + ["[ ! -f #{target} ] && rtmpdump --skip #{options[:skip]} -r #{file} -o #{target}"]
+      target = File.join options[:target], sanitize_filename(title) + '.mp4'
+      commands + ["[ ! -f #{target} ] && rtmpdump --skip #{options[:skip]} -r #{file} | ffmpeg -loglevel quiet -i pipe:0 -metadata title=\"#{title}\" #{target}"]
     end
 
     if options[:preview]
