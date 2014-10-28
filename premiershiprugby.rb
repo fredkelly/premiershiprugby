@@ -134,7 +134,7 @@ class PremiershipRugbyCLI < Thor
     if options[:preview]
       puts commands.join("\n")
     else
-      commands.each { |c| system(c) }
+      commands.each { |c| `#{c}` }
     end
   end
 
