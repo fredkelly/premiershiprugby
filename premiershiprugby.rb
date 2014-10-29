@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'date'
 require 'bundler'
 Bundler.require
 
@@ -37,7 +38,7 @@ module PremiershipRugby
       options[:quality] ||= nil
 
       self.replays(options[:limit]).reduce([]) do |all, r|
-        all + r.video_files(options[:quality], options[:formats]).map { |f| [r.title, f] }
+        all + r.video_files(options[:quality], options[:formats]).map { |f| [r.filename, f] }
       end
     end
   end
@@ -48,7 +49,7 @@ module PremiershipRugby
 
     base_uri BASE_URI
 
-    attr_accessor :id, :title, :image
+    attr_accessor :id, :title, :image, :created_at
 
     def initialize(videoItem)
       @id = videoItem.css('.img > a')
@@ -56,6 +57,11 @@ module PremiershipRugby
             .match(/playVideo\((\d+)\)/).captures.first
       @title = videoItem.css('h2').text.strip
       @image = videoItem.css('.img img').attr('src').value
+      @created_at = DateTime.rfc2822(manifest.xpath('//clip').attr('videoCreationRFC822Date').value)
+    end
+
+    def filename
+      created_at.strftime("%Y-%m-%d") + '_' + sanitized_title
     end
 
     def type
@@ -109,6 +115,13 @@ module PremiershipRugby
       )
       "/page/sva/xmlHttpRequest/0,,#{SITE_ID},00.xml?#{params}"
     end
+
+    # http://stackoverflow.com/a/10823131
+    def sanitized_title(separator = '_')
+      title = @title.split /(?<=.)\.(?=[^.])(?!.*\.[^.])/m
+      title.map! { |s| s.gsub /[^a-z0-9\-]+/i, '_' }
+      title.join(separator)
+    end
   end
 end
 
@@ -126,8 +139,8 @@ class PremiershipRugbyCLI < Thor
     files = PremiershipRugby::Client.replay_video_files(options.dup)
     commands = []
     
-    commands = files.inject([]) do |commands, (title, file)|
-      target = File.join options[:target], sanitize_filename(title) + File.extname(file)
+    commands = files.inject([]) do |commands, (filename, file)|
+      target = File.join options[:target], filename + File.extname(file)
       commands + ["[ ! -f #{target} ] && rtmpdump --skip #{options[:skip]} -r #{file} -o #{target}"]
     end
 
@@ -136,25 +149,6 @@ class PremiershipRugbyCLI < Thor
     else
       commands.each { |c| `#{c}` }
     end
-  end
-
-  private
-
-  # http://stackoverflow.com/a/10823131
-  def sanitize_filename(filename)
-    # Split the name when finding a period which is preceded by some
-    # character, and is followed by some character other than a period,
-    # if there is no following period that is followed by something
-    # other than a period (yeah, confusing, I know)
-    fn = filename.split /(?<=.)\.(?=[^.])(?!.*\.[^.])/m
-
-    # We now have one or two parts (depending on whether we could find
-    # a suitable period). For each of these parts, replace any unwanted
-    # sequence of characters with an underscore
-    fn.map! { |s| s.gsub /[^a-z0-9\-]+/i, '_' }
-
-    # Finally, join the parts with a period and return the result
-    return fn.join '.'
   end
 end
 
