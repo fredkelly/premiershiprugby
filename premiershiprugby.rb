@@ -55,6 +55,10 @@ module PremiershipRugby
       @id = videoItem.css('.img > a')
             .attr('onclick').value
             .match(/playVideo\((\d+)\)/).captures.first
+
+      # Fix 2015-04-06
+      return unless manifest.at_xpath('//clip')
+
       @title = videoItem.css('h2').text.strip
       @image = videoItem.css('.img img').attr('src').value
       @created_at = DateTime.rfc2822(manifest.xpath('//clip').attr('videoCreationRFC822Date').value)
