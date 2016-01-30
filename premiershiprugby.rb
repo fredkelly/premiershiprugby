@@ -37,7 +37,15 @@ module PremiershipRugby
       options[:formats] ||= %w(.flv .m4a)
       options[:quality] ||= nil
 
-      self.replays(options[:limit]).reduce([]) do |all, r|
+
+      if search = options[:search]
+        fz = FuzzyMatch.new(self.replays, :read => :title)
+        replays = [fz.find(search)] #.first(options[:limit])
+      else
+        replays = self.replays(options[:limit])     
+      end
+
+      replays.reduce([]) do |all, r|
         all + r.video_files(options[:quality], options[:formats]).map { |f| [r.filename, f] }
       end
     end
@@ -133,6 +141,7 @@ class PremiershipRugbyCLI < Thor
   option :preview, :type => :boolean, :default => true, :desc => 'preview without downloading'
   option :target, :type => :string, :required => true, :desc => 'destination directory'
   option :quality, :type => :string, :enum => ['high', 'low', 'iphone'], :desc => 'file quality'
+  option :search, :type => :string, :desc => 'search query'
   option :formats, :type => :array, :enum => ['.flv', '.m4a'], :desc => 'file formats'
   option :limit, :type => :numeric, :desc => 'number of results returned'
   option :skip, :type => :numeric, :desc => '(rtmpdump) skip N keyframes when resuming', :default => 0

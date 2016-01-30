@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    fuzzy_match (2.1.0)
     httparty (0.12.0)
       json (~> 1.8)
       multi_xml (>= 0.5.2)
@@ -15,6 +16,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  fuzzy_match
   httparty
   nokogiri
   thor
+
+BUNDLED WITH
+   1.11.2

@@ -1,4 +1,4 @@
 LOG_FILE=./download.log
-TARGET_DIR=/mnt/storage/premiershiprugby/
+TARGET_DIR=/Users/freddy/Movies/Rugby
 
-( ./premiershiprugby.rb download --quality=high --formats=.flv --target=$TARGET_DIR --no-preview --skip=1 --limit=50 ) 2>> $LOG_FILE
+(bundle exec ./premiershiprugby.rb download --quality=high --formats=.flv --target=$TARGET_DIR --no-preview --skip=1 --limit=5 ) 2>> $LOG_FILE
