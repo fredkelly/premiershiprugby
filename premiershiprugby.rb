@@ -88,28 +88,25 @@ module PremiershipRugby
     end
 
     def video_files(quality = nil, formats = nil)
-      quality = quality.to_sym if quality
+      quality = (quality || :low).to_sym 
       formats ||= %w(.flv .m4v)
 
-      # hack, full match replays don't have a /hi/ in URI
-      quality = nil if type == :match
-
-
       @video_files ||= manifest.xpath('//videofiles//file').map { |f| f.attr('externalPath').strip }
-      video_files = @video_files.select { |f| formats.include?(File.extname(f)) }
 
-      case quality
-      when :iphone
-        video_files.select! { |f| f[/\/iphone\//] }
-      when :high
-        video_files.select! { |f| f[/\/hi\//] }
-      when :low
-        video_files.select! { |f| f[/\/lo\//] }
-      else
-        # no filtering
+      video_files = {
+        :iphone => /\/iphone\//,
+        :high => /\/hi\//,
+        :low => /\/lo\//
+      }.inject({}) do |by_quality, (quality, pattern)|
+        by_quality.merge(quality => @video_files.select { |f| formats.include?(File.extname(f)) && f[pattern] })
       end
 
-      video_files.compact
+      # hack, full match replays don't have a /hi/ in URI
+      if type == :match && video_files[quality].empty?
+        video_files.values.select(&:any?)
+      else
+        video_files[quality]
+      end
     end
 
     private
